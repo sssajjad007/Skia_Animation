@@ -1,18 +1,7 @@
-import React, { FC, useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View } from 'react-native';
 import Svg, { Path as PathSvg } from 'react-native-svg';
-import {
-  BlurMask,
-  Canvas,
-  Circle,
-  Path,
-  Rect,
-  Skia,
-  SweepGradient,
-  useSharedValueEffect,
-  useValue,
-  vec,
-} from '@shopify/react-native-skia';
+import { BlurMask, Canvas, Circle, Path, Rect, Skia, SweepGradient, useValue, vec } from '@shopify/react-native-skia';
 
 import { Dimensions, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -42,11 +31,10 @@ export const LineSlider = () => {
   const movableCx = useSharedValue(startX);
   const previousPositionX = useSharedValue(startX);
   const percentComplete = useSharedValue(0);
-  const skiaCx = useValue(startX);
   const skiaCy = useValue(startY);
   const checker = useRef(true);
-  const skValue = useValue(0);
-  const circleValue = useValue(0);
+  const skValue = useSharedValue(12);
+  const circleValue = useSharedValue(0);
   const [mode, setMode] = useState(false);
   ////////////////////////////////////////
 
@@ -80,18 +68,13 @@ export const LineSlider = () => {
         console.log('happy');
       }
       percentComplete.value = percent;
+      skValue.value = interpolate(percentComplete.value, [0, 0.5, 1], [12, 3, 12]);
+      console.log(skValue.value);
+      circleValue.value = percentComplete.value * 6;
     })
     .onEnd(() => {
       previousPositionX.value = movableCx.value;
     });
-  useSharedValueEffect(() => {
-    skiaCx.current = movableCx.value;
-  }, movableCx);
-
-  useSharedValueEffect(() => {
-    skValue.current = interpolate(percentComplete.value, [0, 0.5, 1], [12, 3, 12]);
-    circleValue.current = percentComplete.value * 6;
-  }, percentComplete);
 
   const dotStyle = useAnimatedStyle(() => {
     return {
@@ -197,10 +180,10 @@ export const LineSlider = () => {
             >
               <BlurMask blur={circleValue} style={'solid'} />
             </Path>
-            <Circle cx={skiaCx} cy={skiaCy} r={20} color="#4DCBF7" style="fill">
+            <Circle cx={movableCx} cy={skiaCy} r={20} color="#4DCBF7" style="fill">
               <BlurMask blur={circleValue} style={'solid'} />
             </Circle>
-            <Circle cx={skiaCx} cy={skiaCy} r={15} color="white" style="fill" />
+            <Circle cx={movableCx} cy={skiaCy} r={15} color="white" style="fill" />
           </Canvas>
         </View>
       </GestureDetector>
